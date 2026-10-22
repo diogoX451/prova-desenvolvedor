@@ -76,7 +76,7 @@ sql/schema.sql                          T3  RLS
   - Grupo Aurora: de 0 para 13 tarefas, sem as da Outra Empresa.
   - Aurora Serviços: de 4 para 9, porque passa a incluir a Aurora Campo.
   - Conferido na tela com o navegador: a tarefa do dia "Até" aparece.
-- **PR:** _[link]_ (branch `tarefa-1`)
+- **PR:** [#1](https://github.com/diogoX451/prova-desenvolvedor/pull/1) (branch `tarefa-1`)
 
 ## Tarefa 2 — Relatório de vendas
 
@@ -91,7 +91,7 @@ sql/schema.sql                          T3  RLS
   - `npm run relatorio -- 2026-10-01` → **R$ 3.400,50**.
   - Somando de 30/09 a 03/10, nenhuma venda se perdeu: 10.971,00 − 2.350,50 de duplicatas = 8.620,50 depois da correção.
   - O resultado é o mesmo com a máquina em outro fuso.
-- **PR:** _[link]_ (branch `tarefa-2`)
+- **PR:** [#2](https://github.com/diogoX451/prova-desenvolvedor/pull/2) (branch `tarefa-2`)
 
 ## Tarefa 3 — Cliente vendo dado de outra empresa
 
@@ -108,7 +108,7 @@ sql/schema.sql                          T3  RLS
   - O teste sobe o mesmo banco do `npm run db`, pelo adaptador `src/banco/adaptadores/pglite.js`.
   - Pelo `npm run db`, a Vértice passou de 15 tarefas (de todas as empresas) para 4, só as dela.
   - Mover ou criar tarefa fora da árvore dá erro de RLS. Alterar ou apagar tarefa alheia afeta 0 linhas.
-- **PR:** _[link]_ (branch `tarefa-3`)
+- **PR:** [#3](https://github.com/diogoX451/prova-desenvolvedor/pull/3) (branch `tarefa-3`)
 
 ## Tarefa 4 — Prazo em dias úteis
 
@@ -126,7 +126,7 @@ sql/schema.sql                          T3  RLS
   - 27 testes novos: 16 em `test/tarefas/prazo.test.js` (na `main`, 14 falham), 4 do domínio de feriados e 7 do adaptador, este com um `fetch` falso, sem rede.
   - Cobrem sexta → segunda, fim de semana, feriado, criação no sábado, feriado no domingo, virada do ano, quatro fusos e prazos reais com os feriados baixados.
   - Na tela, conferi por exemplo a tarefa 115: criada no sábado 10/10, com o feriado de 12/10, vence em 15/10.
-- **PR:** _[link]_ (branch `tarefa-4`)
+- **PR:** [#4](https://github.com/diogoX451/prova-desenvolvedor/pull/4) (branch `tarefa-4`)
 
 ## Tarefa 5 — Exportar para o Excel
 
@@ -143,7 +143,7 @@ sql/schema.sql                          T3  RLS
   - 12 testes novos em `test/tarefas/csv-excel.test.js`, e todos falham na `main`. Eles leem o CSV de volta e conferem célula por célula, inclusive título com quebra de linha e as 15 tarefas reais.
   - No navegador, interceptei o arquivo baixado: começa com os bytes `EF BB BF` e tem as mesmas linhas da tabela.
   - **Não abri no Excel de verdade**, porque não tinha Excel disponível.
-- **PR:** _[link]_ (branch `tarefa-5`)
+- **PR:** [#5](https://github.com/diogoX451/prova-desenvolvedor/pull/5) (branch `tarefa-5`)
 
 ## As cinco juntas
 
