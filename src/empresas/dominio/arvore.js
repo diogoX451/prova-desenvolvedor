@@ -23,3 +23,26 @@ export function descendentes(empresas, empresaId) {
   }
   return visiveis;
 }
+
+/**
+ * Árvore das empresas para a tela. Cada nó diz se quem está logado acessa a
+ * empresa (pode ver e mexer nas tarefas dela) ou se ela aparece só como
+ * contexto, por estar acima da empresa da pessoa.
+ *
+ * @param {Array}       empresas   empresas que a pessoa enxerga
+ * @param {Set<number>} acessiveis ids que a pessoa acessa
+ * @returns {Array<{id: number, nome: string, acessivel: boolean, filhas: Array}>}
+ *          raízes (empresas sem pai na lista), na ordem do cadastro. Como cada
+ *          empresa tem um pai só, um ciclo no cadastro nunca é alcançado a
+ *          partir de uma raiz: as empresas dele ficam de fora, sem travar.
+ */
+export function montarArvore(empresas, acessiveis) {
+  const ids = new Set(empresas.map((e) => e.id));
+  const no = (empresa) => ({
+    id: empresa.id,
+    nome: empresa.nome,
+    acessivel: acessiveis.has(empresa.id),
+    filhas: empresas.filter((f) => f.pai_id === empresa.id).map(no),
+  });
+  return empresas.filter((e) => e.pai_id == null || !ids.has(e.pai_id)).map(no);
+}
