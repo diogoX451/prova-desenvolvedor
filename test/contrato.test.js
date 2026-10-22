@@ -3,6 +3,7 @@ import * as tarefas from '../src/tarefas.js';
 import * as prazo from '../src/prazo.js';
 import * as exportar from '../src/exportar.js';
 import * as relatorio from '../src/relatorio.js';
+import * as tela from '../src/App.jsx';
 
 // A prova pede para manter nomes e parâmetros. Depois da separação em
 // domínio/adaptadores, os caminhos originais viraram fachadas: este teste
@@ -13,6 +14,7 @@ describe('contrato: caminhos e nomes originais continuam valendo', () => {
     ['src/prazo.js', prazo, ['prazoSLA']],
     ['src/exportar.js', exportar, ['gerarCSV']],
     ['src/relatorio.js', relatorio, ['formatarBRL', 'ticketMedio', 'totalDoDia']],
+    ['src/App.jsx', tela, ['App']],
   ])('%s exporta %j', (_, modulo, nomes) => {
     expect(Object.keys(modulo).sort()).toEqual(nomes);
     for (const nome of nomes) expect(typeof modulo[nome]).toBe('function');
