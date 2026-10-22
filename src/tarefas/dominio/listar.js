@@ -14,7 +14,8 @@ import { descendentes } from '../../empresas/dominio/arvore.js';
  * @returns {Array} tarefas ordenadas pela data de criação (e id, no empate)
  */
 export function listarTarefas({ tarefas, empresas, empresaId, de, ate }) {
-  const visiveis = descendentes(empresas, empresaId);
+  // o id pode chegar como texto (valor de <select>, parâmetro de URL)
+  const visiveis = descendentes(empresas, Number(empresaId));
   // 'YYYY-MM-DD' em ordem de texto é a mesma ordem de data
   return tarefas
     .filter((t) => visiveis.has(t.empresa_id))

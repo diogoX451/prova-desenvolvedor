@@ -27,6 +27,11 @@ describe('listarTarefas', () => {
     it('empresa inexistente não vê nada', () => {
       expect(ids(99)).toEqual([]);
     });
+
+    it('aceita o id da empresa como texto (valor de <select> ou de URL)', () => {
+      expect(ids('2')).toEqual(ids(2));
+      expect(ids('2')).toHaveLength(9);
+    });
   });
 
   describe('período', () => {
