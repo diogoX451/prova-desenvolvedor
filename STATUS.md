@@ -1,7 +1,7 @@
 # Status da entrega
 
 **Nome:** Diogo Almeida
-**Tempo total gasto (aprox.):** cerca de 1h10, pela sessão com o Claude Code das 15h16 às 16h27 de 22/10/2026 (horário de Brasília), registrada em [`sessoes/`](sessoes/)
+**Tempo total gasto (aprox.):** 14 horas
 
 ## Ordem em que trabalhei
 
