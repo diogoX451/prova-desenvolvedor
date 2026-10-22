@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { empresas, tarefas } from './fontes.js';
+import { empresas, tarefas, feriados } from './fontes.js';
 import { listarTarefas } from '../tarefas/dominio/listar.js';
 import { gerarCSV } from '../tarefas/adaptadores/csv-excel.js';
 import { baixarArquivo } from './adaptadores/download.js';
+import { prazoSLA } from '../tarefas/dominio/prazo.js';
+
+const SLA_DIAS_UTEIS = 3;
 
 export function App() {
   const [empresaId, setEmpresaId] = useState(1);
@@ -34,11 +37,17 @@ export function App() {
       ) : (
         <table width="100%" cellPadding={6}>
           <thead>
-            <tr><th align="left">Data</th><th align="left">Tarefa</th><th align="left">Status</th></tr>
+            <tr>
+              <th align="left">Data</th><th align="left">Tarefa</th><th align="left">Status</th>
+              <th align="left">Prazo ({SLA_DIAS_UTEIS} dias úteis)</th>
+            </tr>
           </thead>
           <tbody>
             {lista.map((t) => (
-              <tr key={t.id}><td>{t.criada_em}</td><td>{t.titulo}</td><td>{t.status}</td></tr>
+              <tr key={t.id}>
+                <td>{t.criada_em}</td><td>{t.titulo}</td><td>{t.status}</td>
+                <td>{prazoSLA(t.criada_em, SLA_DIAS_UTEIS, feriados)}</td>
+              </tr>
             ))}
           </tbody>
         </table>
