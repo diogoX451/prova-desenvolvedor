@@ -41,7 +41,7 @@ src/
 │   ├── App.jsx                             a tela
 │   ├── fontes.js                           único lugar que sabe de onde vêm os dados
 │   └── adaptadores/download.js         T5  texto → arquivo baixado
-└── tarefas.js · prazo.js · exportar.js · relatorio.js
+└── tarefas.js · prazo.js · exportar.js · relatorio.js · App.jsx · main.jsx
                                             fachadas: o contrato da prova nos caminhos originais
 scripts/                                    comandos npm run: montam as peças e fazem I/O
 sql/schema.sql                          T3  RLS
@@ -51,7 +51,7 @@ sql/schema.sql                          T3  RLS
 - **A reestruturação é um commit só na `main`**, que move código sem mudar comportamento. Os bugs continuam lá, e cada correção vem na sua PR.
 - **Conferido:** depois do commit, o relatório ainda dá R$ 4.501,00, o banco ainda mostra 15 tarefas para a Vértice e a tela não mudou.
 - **As 5 branches saem dessa `main`**, e cada PR mostra só a própria correção.
-- **Contrato da prova:** nomes e parâmetros de `listarTarefas`, `totalDoDia`, `ticketMedio`, `formatarBRL`, `prazoSLA` e `gerarCSV` continuam nos caminhos originais, como fachadas. O `test/contrato.test.js` garante isso.
+- **Contrato da prova:** nomes e parâmetros de `listarTarefas`, `totalDoDia`, `ticketMedio`, `formatarBRL`, `prazoSLA` e `gerarCSV` continuam nos caminhos originais, como fachadas, e a tela continua em `src/App.jsx`, como o enunciado cita. O `test/contrato.test.js` garante isso.
 
 **A regra de dependência é verificada por teste**, não só por convenção:
 - o `test/arquitetura.test.js` falha se algum arquivo de `dominio/` importar adaptador, tela, módulo do Node, JSON ou biblioteca;
@@ -71,7 +71,8 @@ sql/schema.sql                          T3  RLS
   - **Comparava as datas com `>` e `<`**, e assim as tarefas do primeiro e do último dia do filtro sumiam.
   - Corrigi com `descendentes()` (`src/empresas/dominio/arvore.js`, protegida contra ciclo no cadastro) e com `>=`/`<=`. Também passei a tratar data apagada no campo como período aberto e a desempatar a ordem por id.
 - **Como provei que funciona:**
-  - 14 testes novos, em `test/tarefas/listar.test.js` e `test/empresas/arvore.test.js`. Na `main`, 7 dos 11 casos de `listarTarefas` falham.
+  - 15 testes novos, em `test/tarefas/listar.test.js` e `test/empresas/arvore.test.js`. Na `main`, 8 dos 12 casos de `listarTarefas` falham.
+  - Depois da revisão, passei também a aceitar o id da empresa como texto (valor de `<select>` ou de URL), que antes devolvia a lista vazia.
   - O teste original (`test/tarefas.test.js`) continua passando sem alteração.
   - Grupo Aurora: de 0 para 13 tarefas, sem as da Outra Empresa.
   - Aurora Serviços: de 4 para 9, porque passa a incluir a Aurora Campo.
@@ -87,7 +88,9 @@ sql/schema.sql                          T3  RLS
   - A conta fecha: +600 + 1.450,50 − 950 = 1.100,50.
   - Além disso, corrigi a soma, que era em ponto flutuante e passou a ser em centavos, e o **ticket médio**, que dividia por todas as vendas do dia, inclusive canceladas e repetidas. Em 01/10 ele mostrava R$ 643,00; o certo é R$ 680,10.
 - **Como provei que funciona:**
-  - 10 testes novos em `test/vendas/relatorio.test.js`; na `main`, 7 de 10 falham.
+  - 11 testes novos em `test/vendas/relatorio.test.js`; na `main`, 8 de 11 falham.
+  - Os testes usam uma cópia fixa das vendas (`test/fixtures/vendas-2026-10-01.json`), porque o `data/vendas.json` é trocado todo dia e quebraria o teste.
+  - Depois da revisão: uma venda com data ilegível passou a ficar de fora, em vez de derrubar o relatório inteiro.
   - `npm run relatorio -- 2026-10-01` → **R$ 3.400,50**.
   - Somando de 30/09 a 03/10, nenhuma venda se perdeu: 10.971,00 − 2.350,50 de duplicatas = 8.620,50 depois da correção.
   - O resultado é o mesmo com a máquina em outro fuso.
@@ -120,10 +123,11 @@ sql/schema.sql                          T3  RLS
   - Ela fica isolada no adaptador `src/feriados/adaptadores/brasilapi.js`, que traduz a resposta para o formato do domínio. Trocar de provedor muda só esse arquivo.
   - **Decisão:** a API marca Carnaval e Corpus Christi como `national`, mas a portaria federal do calendário de feriados lista os dois como **ponto facultativo**. Como a regra é "exceto feriados nacionais", eles contam como dia útil.
   - Essa regra fica no domínio (`src/feriados/dominio/feriados.js`), com o motivo comentado. O comando `npm run feriados` mostra no terminal o que descartou.
-  - O `prazoSLA` somava dias corridos, ignorava os feriados e misturava UTC com hora local. Agora conta dias úteis a partir do dia seguinte, com a conta toda em UTC.
+  - O `prazoSLA` somava dias corridos, ignorava os feriados e misturava UTC com hora local. Agora conta dias úteis a partir do dia seguinte, com a conta toda em UTC, e recusa `dias` negativo ou fracionado.
+  - O `data/feriados-2026.json` é uma lista de datas, o mesmo formato que o `prazoSLA` recebe: o arquivo serve direto nele. Na primeira versão ele era uma lista de objetos, e passado direto os feriados eram ignorados sem erro; achei isso na revisão e corrigi.
   - A tela tem a coluna "Prazo (3 dias úteis)". O `ui/fontes.js` carrega todo `data/feriados-*.json` que existir.
 - **Como provei que funciona:**
-  - 27 testes novos: 16 em `test/tarefas/prazo.test.js` (na `main`, 14 falham), 4 do domínio de feriados e 7 do adaptador, este com um `fetch` falso, sem rede.
+  - 34 testes novos: 20 de prazo (na `main`, 17 falham), 4 do domínio de feriados, 7 do adaptador (com um `fetch` falso, sem rede) e 3 que carregam o arquivo gerado e passam direto ao `prazoSLA`.
   - Cobrem sexta → segunda, fim de semana, feriado, criação no sábado, feriado no domingo, virada do ano, quatro fusos e prazos reais com os feriados baixados.
   - Na tela, conferi por exemplo a tarefa 115: criada no sábado 10/10, com o feriado de 12/10, vence em 15/10.
 - **PR:** [#4](https://github.com/diogoX451/prova-desenvolvedor/pull/4) (branch `tarefa-4`)
@@ -150,11 +154,22 @@ sql/schema.sql                          T3  RLS
 Juntei as 5 branches numa branch local temporária, que apaguei depois, para conferir que funcionam em conjunto:
 - Merges limpos, exceto **um conflito**: os imports no topo de `src/ui/App.jsx`, entre as Tarefas 4 e 5. A solução é manter os dois.
 - Com as 5 juntas:
-  - **110 testes passam**;
+  - **120 testes passam**;
   - o relatório de 01/10 dá R$ 3.400,50;
   - a Vértice vê só as 4 tarefas dela;
   - na tela, o Grupo Aurora mostra 13 tarefas, com a coluna de prazo;
   - o CSV exportado tem as mesmas 13 linhas.
+
+## Revisão depois de abrir as PRs
+
+Depois de abrir as PRs, rodei casos de borda que os testes não cobriam e corrigi o que apareceu, cada coisa na sua branch, com teste:
+
+- **Tarefa 4:** o arquivo de feriados não servia direto no `prazoSLA` (era lista de objetos), e `dias` inválido não dava erro.
+- **Tarefa 2:** o teste dependia do `data/vendas.json`, que é trocado todo dia, e uma venda com data ilegível derrubava o relatório.
+- **Tarefa 1:** o id da empresa como texto devolvia a lista vazia.
+- **`main`:** a tela tinha saído de `src/App.jsx`, o caminho que o enunciado cita; voltou como fachada. Entrou também o CI (GitHub Actions), que roda `npm test` e o build em cada PR.
+
+Duas decisões continuam em aberto, à espera da confirmação de vocês: Carnaval e Corpus Christi como dia útil, e o BOM e o `'` na frente de fórmula no CSV.
 
 ## Encontrei também
 
@@ -181,5 +196,5 @@ Juntei as 5 branches numa branch local temporária, que apaguei depois, para con
 - **Feriados de 2027 em diante**: só 2026 foi baixado. O ideal é um job anual rodando `npm run feriados -- <próximo ano>`; a tela já carrega o arquivo novo sozinha.
 - **Feriados estaduais e municipais**, se o atendimento for presencial. O pedido foi só dos nacionais.
 - **RLS na tabela `empresas`** e o seletor da tela restrito à árvore de quem está logado.
-- **Integração contínua** (GitHub Actions) rodando `npm test` em cada PR.
+- **Teste automático da tela** (componente, com Testing Library): hoje a coluna de prazo e o botão de exportar foram conferidos no navegador.
 - **Confirmar com o financeiro e o cliente** duas decisões que tomei e documentei: a regra de desempate das vendas duplicadas e se Carnaval e Corpus Christi contam no SLA do contrato.
