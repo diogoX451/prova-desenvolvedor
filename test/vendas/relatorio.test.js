@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import vendasReais from '../../data/vendas.json';
+// Cópia do data/vendas.json de 01/10/2026, o dia que o financeiro conferiu.
+// O arquivo real é trocado todo dia pela sincronização; o teste não pode
+// depender dele.
+import vendasReais from '../fixtures/vendas-2026-10-01.json';
 import { totalDoDia, ticketMedio } from '../../src/vendas/dominio/relatorio.js';
 
 const venda = (id, valor, criada_em, status = 'paga') => ({ id, valor, status, criada_em });
