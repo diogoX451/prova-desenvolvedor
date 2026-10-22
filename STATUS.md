@@ -18,7 +18,50 @@
 - Depois escrevi testes que falham, corrigi e mostrei o antes e depois.
 - Os commits estão separados nessa ordem (teste vermelho, depois correção), para que dê para rodar o teste contra o código antigo.
 - Cada PR tem: problema, causa raiz, correção, como provei e o que ficou fora.
-- Todas as branches saem da `main` e mantêm os nomes e parâmetros das funções pedidas.
+
+## Arquitetura
+
+Organizei o código **por funcionalidade**, separando em cada uma o **domínio** (regra pura) dos **adaptadores** (formatos, APIs, navegador, banco). As regras estão em [`ARQUITETURA.md`](ARQUITETURA.md).
+
+```
+src/
+├── empresas/dominio/arvore.js          T1  descendentes()
+├── tarefas/
+│   ├── dominio/listar.js               T1  listarTarefas()
+│   ├── dominio/prazo.js                T4  prazoSLA()
+│   └── adaptadores/csv-excel.js        T5  gerarCSV(): formato Excel pt-BR
+├── vendas/
+│   ├── dominio/relatorio.js            T2  totalDoDia(), ticketMedio()
+│   └── adaptadores/moeda.js                formatarBRL()
+├── feriados/
+│   ├── dominio/feriados.js             T4  quais são feriados nacionais
+│   └── adaptadores/brasilapi.js        T4  busca e traduz a resposta da BrasilAPI
+├── banco/adaptadores/pglite.js         T3  Postgres em memória (npm run db e testes)
+├── ui/
+│   ├── App.jsx                             a tela
+│   ├── fontes.js                           único lugar que sabe de onde vêm os dados
+│   └── adaptadores/download.js         T5  texto → arquivo baixado
+└── tarefas.js · prazo.js · exportar.js · relatorio.js
+                                            fachadas: o contrato da prova nos caminhos originais
+scripts/                                    comandos npm run: montam as peças e fazem I/O
+sql/schema.sql                          T3  RLS
+```
+
+**Como ficou a entrega:**
+- **A reestruturação é um commit só na `main`**, que move código sem mudar comportamento. Os bugs continuam lá, e cada correção vem na sua PR.
+- **Conferido:** depois do commit, o relatório ainda dá R$ 4.501,00, o banco ainda mostra 15 tarefas para a Vértice e a tela não mudou.
+- **As 5 branches saem dessa `main`**, e cada PR mostra só a própria correção.
+- **Contrato da prova:** nomes e parâmetros de `listarTarefas`, `totalDoDia`, `ticketMedio`, `formatarBRL`, `prazoSLA` e `gerarCSV` continuam nos caminhos originais, como fachadas. O `test/contrato.test.js` garante isso.
+
+**A regra de dependência é verificada por teste**, não só por convenção:
+- o `test/arquitetura.test.js` falha se algum arquivo de `dominio/` importar adaptador, tela, módulo do Node, JSON ou biblioteca;
+- ele também falha se o domínio usar `fetch`, `document`, `window` ou `import.meta`;
+- conferi injetando de propósito um import proibido: o teste acusou.
+
+**O que essa separação compra na prática:**
+- trocar a BrasilAPI por outro provedor muda só `feriados/adaptadores/`;
+- trocar de onde a tela lê os dados muda só `ui/fontes.js`;
+- todo o domínio é testado sem rede, banco ou navegador.
 
 ## Tarefa 1 — Tela de tarefas
 
@@ -26,9 +69,10 @@
 - **Qual era o problema:** dois bugs em `listarTarefas`.
   - **Filtrava pela empresa exata**, ignorando as empresas abaixo dela. O Grupo Aurora não tem nenhuma tarefa própria (estão todas nas filhas), então a tela ficava vazia.
   - **Comparava as datas com `>` e `<`**, e assim as tarefas do primeiro e do último dia do filtro sumiam.
-  - Corrigi com a função `descendentes()` (a árvore de empresas, protegida contra ciclo no cadastro) e com `>=`/`<=`. Também passei a tratar data apagada no campo como período aberto e a desempatar a ordem por id.
+  - Corrigi com `descendentes()` (`src/empresas/dominio/arvore.js`, protegida contra ciclo no cadastro) e com `>=`/`<=`. Também passei a tratar data apagada no campo como período aberto e a desempatar a ordem por id.
 - **Como provei que funciona:**
-  - 15 testes novos. Na `main`, 7 dos 12 casos de `listarTarefas` falham.
+  - 14 testes novos, em `test/tarefas/listar.test.js` e `test/empresas/arvore.test.js`. Na `main`, 7 dos 11 casos de `listarTarefas` falham.
+  - O teste original (`test/tarefas.test.js`) continua passando sem alteração.
   - Grupo Aurora: de 0 para 13 tarefas, sem as da Outra Empresa.
   - Aurora Serviços: de 4 para 9, porque passa a incluir a Aurora Campo.
   - Conferido na tela com o navegador: a tarefa do dia "Até" aparece.
@@ -43,7 +87,7 @@
   - A conta fecha: +600 + 1.450,50 − 950 = 1.100,50.
   - Além disso, corrigi a soma, que era em ponto flutuante e passou a ser em centavos, e o **ticket médio**, que dividia por todas as vendas do dia, inclusive canceladas e repetidas. Em 01/10 ele mostrava R$ 643,00; o certo é R$ 680,10.
 - **Como provei que funciona:**
-  - 10 testes novos; na `main`, 7 de 11 falham.
+  - 10 testes novos em `test/vendas/relatorio.test.js`; na `main`, 7 de 10 falham.
   - `npm run relatorio -- 2026-10-01` → **R$ 3.400,50**.
   - Somando de 30/09 a 03/10, nenhuma venda se perdeu: 10.971,00 − 2.350,50 de duplicatas = 8.620,50 depois da correção.
   - O resultado é o mesmo com a máquina em outro fuso.
@@ -60,7 +104,8 @@
   - A importação inicial nunca precisou daquela regra: ela roda como dono da tabela, que não passa por RLS.
   - Tabelas e colunas não mudaram.
 - **Como provei que funciona:**
-  - `test/rls.test.js` tem 35 casos: 5 empresas × leitura, criação, alteração, exclusão e mudança de empresa, mais o caso sem empresa. Na `main`, 22 falham.
+  - `test/banco/rls.test.js` tem 35 casos: 5 empresas × leitura, criação, alteração, exclusão e mudança de empresa, mais o caso sem empresa. Na `main`, 22 falham.
+  - O teste sobe o mesmo banco do `npm run db`, pelo adaptador `src/banco/adaptadores/pglite.js`.
   - Pelo `npm run db`, a Vértice passou de 15 tarefas (de todas as empresas) para 4, só as dela.
   - Mover ou criar tarefa fora da árvore dá erro de RLS. Alterar ou apagar tarefa alheia afeta 0 linhas.
 - **PR:** _[link]_ (branch `tarefa-3`)
@@ -72,12 +117,13 @@
   - É brasileira, pública e não pede token.
   - Calcula os feriados móveis.
   - Já traz o 20/11, feriado nacional desde a Lei 14.759/2023.
-  - **Decisão:** a API marca Carnaval e Corpus Christi como `national`, mas a portaria federal do calendário de feriados lista os dois como **ponto facultativo**. Como a regra é "exceto feriados nacionais", eles contam como dia útil. O script descarta os dois e avisa no terminal; a regra fica numa linha em `src/feriados.js`, com o motivo.
+  - Ela fica isolada no adaptador `src/feriados/adaptadores/brasilapi.js`, que traduz a resposta para o formato do domínio. Trocar de provedor muda só esse arquivo.
+  - **Decisão:** a API marca Carnaval e Corpus Christi como `national`, mas a portaria federal do calendário de feriados lista os dois como **ponto facultativo**. Como a regra é "exceto feriados nacionais", eles contam como dia útil.
+  - Essa regra fica no domínio (`src/feriados/dominio/feriados.js`), com o motivo comentado. O comando `npm run feriados` mostra no terminal o que descartou.
   - O `prazoSLA` somava dias corridos, ignorava os feriados e misturava UTC com hora local. Agora conta dias úteis a partir do dia seguinte, com a conta toda em UTC.
-  - O comando `npm run feriados -- <ano>` valida a resposta da API e falha com código 1 em vez de gravar lixo.
-  - A tela tem a coluna "Prazo (3 dias úteis)" e carrega todo `data/feriados-*.json` que existir.
+  - A tela tem a coluna "Prazo (3 dias úteis)". O `ui/fontes.js` carrega todo `data/feriados-*.json` que existir.
 - **Como provei que funciona:**
-  - 23 testes novos; na `main`, 14 dos 16 de prazo falham.
+  - 27 testes novos: 16 em `test/tarefas/prazo.test.js` (na `main`, 14 falham), 4 do domínio de feriados e 7 do adaptador, este com um `fetch` falso, sem rede.
   - Cobrem sexta → segunda, fim de semana, feriado, criação no sábado, feriado no domingo, virada do ano, quatro fusos e prazos reais com os feriados baixados.
   - Na tela, conferi por exemplo a tarefa 115: criada no sábado 10/10, com o feriado de 12/10, vence em 15/10.
 - **PR:** _[link]_ (branch `tarefa-4`)
@@ -91,13 +137,24 @@
   - **Campos sem aspas**: a 103 tem vírgula e a 112 tem `;` e `"`, e as duas quebravam as colunas.
   - **Data em formato ISO.**
   - **Injeção de fórmula**: a 114 começa com `=SOMA(...)` e seria executada pelo Excel.
-  - Corrigi com `;`, BOM, aspas no padrão RFC 4180, `DD/MM/AAAA` e `'` na frente de célula que começa com `= + - @`.
-  - O botão "Exportar CSV" baixa a lista que está na tela.
+  - Corrigi com `;`, BOM, aspas no padrão RFC 4180, `DD/MM/AAAA` e `'` na frente de célula que começa com `= + - @`. O formato fica no adaptador `src/tarefas/adaptadores/csv-excel.js`.
+  - O botão "Exportar CSV" baixa a lista que está na tela. O download do navegador fica em `src/ui/adaptadores/download.js`.
 - **Como provei que funciona:**
-  - 12 testes novos, e todos falham na `main`. Eles leem o CSV de volta e conferem célula por célula, inclusive título com quebra de linha e as 15 tarefas reais.
+  - 12 testes novos em `test/tarefas/csv-excel.test.js`, e todos falham na `main`. Eles leem o CSV de volta e conferem célula por célula, inclusive título com quebra de linha e as 15 tarefas reais.
   - No navegador, interceptei o arquivo baixado: começa com os bytes `EF BB BF` e tem as mesmas linhas da tabela.
   - **Não abri no Excel de verdade**, porque não tinha Excel disponível.
 - **PR:** _[link]_ (branch `tarefa-5`)
+
+## As cinco juntas
+
+Juntei as 5 branches numa branch local temporária, que apaguei depois, para conferir que funcionam em conjunto:
+- Merges limpos, exceto **um conflito**: os imports no topo de `src/ui/App.jsx`, entre as Tarefas 4 e 5. A solução é manter os dois.
+- Com as 5 juntas:
+  - **110 testes passam**;
+  - o relatório de 01/10 dá R$ 3.400,50;
+  - a Vértice vê só as 4 tarefas dela;
+  - na tela, o Grupo Aurora mostra 13 tarefas, com a coluna de prazo;
+  - o CSV exportado tem as mesmas 13 linhas.
 
 ## Encontrei também
 
@@ -115,8 +172,7 @@
 
 **Projeto**
 - **Os testes que já existiam passavam com todos os bugs.** Cada um cobria só um caso que já funcionava.
-- **As PRs das Tarefas 4 e 5 mexem no `src/App.jsx`.** São independentes, mas a segunda a entrar vai precisar de um merge simples.
-- **As Tarefas 4 e 5 saem da `main` sem a Tarefa 1**, então nas branches delas o Grupo Aurora ainda aparece vazio. Juntas, funcionam.
+- **As Tarefas 4 e 5 saem da `main` sem a Tarefa 1**, então nas branches delas o Grupo Aurora ainda aparece vazio. Juntas, funcionam (veja acima).
 - **`npm install` altera o `package-lock.json`** (remove marcações `"peer": true`), provavelmente por diferença de versão do npm. É cosmético, e não commitei.
 
 ## O que ficou faltando / o que eu faria com mais tempo
