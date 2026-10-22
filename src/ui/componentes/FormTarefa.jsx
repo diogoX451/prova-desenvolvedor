@@ -6,11 +6,12 @@ const VAZIA = { titulo: '', status: 'aberta', criada_em: '' };
 /**
  * Criar ou editar tarefa. `empresas` são as opções de empresa; no modo
  * demonstração vêm também as sem acesso, para ver o banco recusando.
+ * Tarefa nova começa na empresa da visão atual, se ela estiver nas opções.
  */
-export function FormTarefa({ empresas, inicial, erros = {}, aoSalvar, aoCancelar }) {
+export function FormTarefa({ empresas, empresaPadrao, inicial, erros = {}, aoSalvar, aoCancelar }) {
   const [dados, setDados] = useState(() => ({
     ...VAZIA,
-    empresa_id: empresas[0]?.id ?? '',
+    empresa_id: empresas.some((e) => e.id === empresaPadrao) ? empresaPadrao : (empresas[0]?.id ?? ''),
     ...inicial,
   }));
   const campo = (nome) => (e) => setDados({ ...dados, [nome]: e.target.value });

@@ -128,6 +128,7 @@ export function App() {
             <FormTarefa
               key={editando === 'nova' ? 'nova' : editando.id}
               empresas={opcoesEmpresa}
+              empresaPadrao={visao}
               inicial={editando === 'nova' ? undefined : editando}
               erros={errosCampo}
               aoSalvar={salvar}

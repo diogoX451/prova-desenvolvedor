@@ -94,6 +94,7 @@ button.no:hover { border-color: var(--borda); }
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--borda); vertical-align: top; }
 th { font-size: 0.85rem; color: var(--suave); font-weight: 600; }
+.nowrap { white-space: nowrap; }
 tr:last-child td { border-bottom: none; }
 .acoes-linha { white-space: nowrap; display: flex; gap: 6px; }
 .selo { font-size: 0.8rem; border-radius: 999px; padding: 1px 8px; border: 1px solid var(--borda); }

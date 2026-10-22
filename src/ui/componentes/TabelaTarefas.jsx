@@ -12,11 +12,11 @@ export function TabelaTarefas({ tarefas, slaDiasUteis, aoEditar, aoExcluir }) {
         <tbody>
           {tarefas.map((t) => (
             <tr key={t.id}>
-              <td>{t.criada_em}</td>
+              <td className="nowrap">{t.criada_em}</td>
               <td>{t.empresa}</td>
               <td>{t.titulo}</td>
               <td><span className={`selo selo--${t.status}`}>{t.status}</span></td>
-              <td>{t.prazo}</td>
+              <td className="nowrap">{t.prazo}</td>
               <td className="acoes-linha">
                 <button type="button" onClick={() => aoEditar(t)}>Editar</button>
                 <button type="button" className="perigo" onClick={() => aoExcluir(t)}>Excluir</button>
