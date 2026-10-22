@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import empresas from '../data/empresas.json';
-import tarefas from '../data/tarefas.json';
-import { listarTarefas } from './tarefas.js';
+import { empresas, tarefas } from './fontes.js';
+import { listarTarefas } from '../tarefas/dominio/listar.js';
 
 export function App() {
   const [empresaId, setEmpresaId] = useState(1);

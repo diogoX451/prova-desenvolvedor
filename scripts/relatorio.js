@@ -1,6 +1,7 @@
 // Uso: npm run relatorio -- 2026-10-01
 import { readFileSync } from 'node:fs';
-import { totalDoDia, ticketMedio, formatarBRL } from '../src/relatorio.js';
+import { totalDoDia, ticketMedio } from '../src/vendas/dominio/relatorio.js';
+import { formatarBRL } from '../src/vendas/adaptadores/moeda.js';
 
 const dia = process.argv[2];
 if (!dia) {
