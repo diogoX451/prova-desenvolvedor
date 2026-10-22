@@ -43,6 +43,16 @@ describe('totalDoDia', () => {
   it('dia sem venda dá zero', () => {
     expect(totalDoDia(vendasReais, '2026-12-25')).toBe(0);
   });
+
+  it('venda com data ilegível fica de fora, sem derrubar o relatório', () => {
+    const vendas = [
+      venda('X', 999, 'data quebrada'),
+      venda('Y', 999, undefined),
+      venda('A', 100, '2026-10-05T15:00:00Z'),
+    ];
+    expect(totalDoDia(vendas, '2026-10-05')).toBe(100);
+    expect(ticketMedio(vendas, '2026-10-05')).toBe(100);
+  });
 });
 
 describe('ticketMedio', () => {

@@ -15,7 +15,11 @@ function pagasDoDia(vendas, dia) {
   const porId = new Map(vendas.map((v) => [v.id, v]));
   return [...porId.values()]
     .filter((v) => v.status === 'paga')
-    .filter((v) => diaEmBrasilia.format(new Date(v.criada_em)) === dia);
+    .filter((v) => {
+      const instante = new Date(v.criada_em);
+      // registro com data ilegível fica de fora em vez de derrubar o relatório
+      return !Number.isNaN(instante.getTime()) && diaEmBrasilia.format(instante) === dia;
+    });
 }
 
 /** Total vendido (só vendas pagas) em um dia 'YYYY-MM-DD'. */
