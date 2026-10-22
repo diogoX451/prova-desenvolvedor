@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { empresas, tarefas } from './fontes.js';
 import { listarTarefas } from '../tarefas/dominio/listar.js';
+import { gerarCSV } from '../tarefas/adaptadores/csv-excel.js';
+import { baixarArquivo } from './adaptadores/download.js';
 
 export function App() {
   const [empresaId, setEmpresaId] = useState(1);
@@ -20,6 +22,12 @@ export function App() {
         </select>
         <label>De <input type="date" value={de} onChange={(e) => setDe(e.target.value)} /></label>
         <label>Até <input type="date" value={ate} onChange={(e) => setAte(e.target.value)} /></label>
+        <button
+          onClick={() => baixarArquivo('tarefas.csv', gerarCSV(lista), 'text/csv;charset=utf-8')}
+          disabled={lista.length === 0}
+        >
+          Exportar CSV
+        </button>
       </div>
       {lista.length === 0 ? (
         <p>Nenhuma tarefa no período.</p>
