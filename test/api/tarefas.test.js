@@ -24,10 +24,15 @@ beforeEach(async () => {
   base = `http://localhost:${servidor.address().port}`;
 });
 
-afterEach(() => new Promise((ok) => servidor.close(ok)));
+// cada teste tem servidor e porta próprios: nenhuma conexão pode sobrar para o
+// próximo, ou uma requisição sairia por um socket que está sendo fechado
+afterEach(() => new Promise((ok) => {
+  servidor.closeAllConnections();
+  servidor.close(ok);
+}));
 
 async function pedir(logada, metodo, caminho, corpo) {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = { 'Content-Type': 'application/json', Connection: 'close' };
   if (logada) headers['X-Empresa-Logada'] = String(logada);
   const r = await fetch(base + caminho, { method: metodo, headers, body: corpo && JSON.stringify(corpo) });
   return { status: r.status, corpo: r.status === 204 ? null : await r.json() };
@@ -128,7 +133,7 @@ describe('criar', () => {
   });
 
   it('corpo que não é JSON responde 400', async () => {
-    const r = await fetch(`${base}/api/tarefas`, { method: 'POST', headers: { 'X-Empresa-Logada': '2' }, body: '{quebrado' });
+    const r = await fetch(`${base}/api/tarefas`, { method: 'POST', headers: { 'X-Empresa-Logada': '2', Connection: 'close' }, body: '{quebrado' });
     expect(r.status).toBe(400);
   });
 });
