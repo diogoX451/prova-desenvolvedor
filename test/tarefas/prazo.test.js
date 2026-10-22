@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import feriados2026 from '../../data/feriados-2026.json';
+import feriados from '../../data/feriados-2026.json';
 import { prazoSLA } from '../../src/tarefas/dominio/prazo.js';
-
-const feriados = feriados2026.map((f) => f.data);
 
 describe('prazoSLA em dias úteis', () => {
   it('tarefa de sexta com 1 dia vence na segunda, não no sábado', () => {

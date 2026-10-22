@@ -1,5 +1,5 @@
-// Baixa os feriados nacionais de um ano e salva em data/feriados-<ano>.json,
-// no formato [{ "data": "YYYY-MM-DD", "nome": "..." }].
+// Baixa os feriados nacionais de um ano e salva em data/feriados-<ano>.json
+// como lista de datas ["YYYY-MM-DD", ...], o mesmo formato que prazoSLA recebe.
 //
 // Uso: npm run feriados -- 2026
 import { writeFileSync } from 'node:fs';
@@ -15,9 +15,10 @@ if (!/^\d{4}$/.test(ano ?? '')) {
 try {
   const { feriados, descartados } = feriadosNacionais(await buscarFeriados(ano), Number(ano));
   const destino = new URL(`../data/feriados-${ano}.json`, import.meta.url);
-  writeFileSync(destino, `${JSON.stringify(feriados, null, 2)}\n`);
+  writeFileSync(destino, `${JSON.stringify(feriados.map((f) => f.data), null, 2)}\n`);
 
   console.log(`${feriados.length} feriados nacionais de ${ano} salvos em data/feriados-${ano}.json`);
+  for (const f of feriados) console.log(`  ${f.data} ${f.nome}`);
   for (const f of descartados) {
     console.log(`  ignorado (ponto facultativo, não é feriado nacional): ${f.data} ${f.nome}`);
   }

@@ -7,6 +7,6 @@ import tarefas from '../../data/tarefas.json';
 // prazo de uma tarefa de dezembro já enxergar os feriados de janeiro.
 const feriados = Object.values(
   import.meta.glob('../../data/feriados-*.json', { eager: true, import: 'default' }),
-).flat().map((f) => f.data);
+).flat();
 
 export { empresas, tarefas, feriados };
