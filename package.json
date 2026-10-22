@@ -6,7 +6,9 @@
     "dev": "vite",
     "test": "vitest run",
     "relatorio": "node scripts/relatorio.js",
-    "db": "node scripts/db.js"
+    "db": "node scripts/db.js",
+    "feriados": "node scripts/feriados.js",
+    "api": "node scripts/api.js"
   },
   "dependencies": {
     "react": "18.3.1",
