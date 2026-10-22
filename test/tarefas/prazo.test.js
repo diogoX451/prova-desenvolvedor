@@ -44,6 +44,10 @@ describe('prazoSLA em dias úteis', () => {
     expect(prazoSLA('2026-10-02', 0, [])).toBe('2026-10-02');
   });
 
+  it.each([1.5, -1, Number.NaN, '3'])('recusa prazo inválido (dias = %s)', (dias) => {
+    expect(() => prazoSLA('2026-10-02', dias, [])).toThrow(RangeError);
+  });
+
   it('sem lista de feriados, conta só os fins de semana', () => {
     expect(prazoSLA('2026-10-02', 1)).toBe('2026-10-05');
   });

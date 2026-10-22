@@ -10,8 +10,12 @@ const DOMINGO = 0;
  * @param {number}   dias       quantos dias úteis o cliente contratou
  * @param {string[]} feriados   datas 'YYYY-MM-DD' que não contam
  * @returns {string} data do prazo, 'YYYY-MM-DD'
+ * @throws {RangeError} se `dias` não for um inteiro maior ou igual a zero
  */
 export function prazoSLA(criadaEm, dias, feriados = []) {
+  if (!Number.isInteger(dias) || dias < 0) {
+    throw new RangeError(`Prazo inválido: ${dias}. Use um número inteiro de dias úteis, 0 ou mais.`);
+  }
   const naoUteis = new Set(feriados);
   // Tudo em UTC: é só aritmética de calendário, sem hora. Misturar a data em
   // UTC com getDate/setDate (hora local) dava o dia errado conforme o fuso.
